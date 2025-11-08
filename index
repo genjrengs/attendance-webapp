@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attendance Form</title>
+<style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input, textarea, button { width: 100%; padding: 12px; margin-top: 10px; font-size: 16px; }
+    button { background: black; color: white; border: none; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<h2>Attendance Form</h2>
+<p><strong>Group:</strong> <span id="groupName"></span></p>
+
+<form id="attendanceForm">
+    <input type="text" id="name" placeholder="Your name" required>
+    <input type="text" id="phone" placeholder="Phone number" required>
+    <textarea id="notes" placeholder="Notes / product you're showing"></textarea>
+
+    <input type="hidden" id="groupId">
+    <input type="hidden" id="groupNameHidden">
+    <input type="hidden" id="latitude">
+    <input type="hidden" id="longitude">
+
+    <button type="submit">Submit</button>
+</form>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbwG5wZSdfoqz5ywR-HfwQUZPcE1LkECrrGn4nNWqFSJVt1SuA2ZeCLSDhqzJFm4IJ0/exec";
+
+const params = new URLSearchParams(window.location.search);
+
+document.getElementById("groupId").value = params.get("groupId") || "UNKNOWN";
+document.getElementById("groupNameHidden").value = params.get("groupName") || "UNKNOWN";
+document.getElementById("groupName").innerText = params.get("groupName") || "Unknown group";
+
+// Ask for GPS
+navigator.geolocation.getCurrentPosition(
+    pos => {
+        document.getElementById("latitude").value = pos.coords.latitude;
+        document.getElementById("longitude").value = pos.coords.longitude;
+    },
+    err => alert("⚠️ Please allow location access to continue"),
+    { enableHighAccuracy: true }
+);
+
+document.getElementById("attendanceForm").addEventListener("submit", e => {
+    e.preventDefault();
+
+    fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({
+            groupId: document.getElementById("groupId").value,
+            groupName: document.getElementById("groupNameHidden").value,
+            name: document.getElementById("name").value,
+            phone: document.getElementById("phone").value,
+            notes: document.getElementById("notes").value,
+            latitude: document.getElementById("latitude").value,
+            longitude: document.getElementById("longitude").value,
+        })
+    }).then(() => {
+        alert("✅ Attendance recorded!");
+        location.reload();
+    });
+});
+</script>
+
+</body>
+</html>
